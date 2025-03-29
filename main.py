@@ -18,6 +18,8 @@ logging.getLogger("gymnasium").setLevel(logging.ERROR)
 def main():
     # Create cache directory for FastF1
     os.makedirs("f1_cache", exist_ok=True)
+    # Create models directory if it doesn't exist
+    os.makedirs("models", exist_ok=True)
     
     # Only evaluate existing models
     evaluate_tire_performance()
