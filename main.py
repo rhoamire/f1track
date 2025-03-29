@@ -19,12 +19,12 @@ def main():
     # Create cache directory for FastF1
     os.makedirs("f1_cache", exist_ok=True)
     
-    # Train on soft tires first
-    train_model(tire_compound="soft")
+    # Only evaluate existing models
+    evaluate_tire_performance()
 
 def train_model(tire_compound):
     # Skip training if model exists
-    if os.path.exists(f"ppo_racing_{tire_compound}_tires.zip"):
+    if os.path.exists(f"models/ppo_racing_{tire_compound}_tires.zip"):
         print(f"\nModel for {tire_compound} tires already exists, skipping training...")
         return
     
@@ -32,18 +32,18 @@ def train_model(tire_compound):
     env = F1RacingEnv(tire_compound=tire_compound)
     model = PPO("MlpPolicy", env, verbose=1)
     model.learn(total_timesteps=300000)
-    model.save(f"ppo_racing_{tire_compound}_tires")
+    model.save(f"models/ppo_racing_{tire_compound}_tires")
 
 def evaluate_tire_performance():
     tire_types = ["soft", "medium", "hard"]
     lap_times = {}
 
     for tire in tire_types:
-        if not os.path.exists(f"ppo_racing_{tire}_tires.zip"):
+        if not os.path.exists(f"models/ppo_racing_{tire}_tires.zip"):
             print(f"\nNo model found for {tire} tires, skipping evaluation...")
             continue
             
-        model = PPO.load(f"ppo_racing_{tire}_tires")
+        model = PPO.load(f"models/ppo_racing_{tire}_tires")
         env = F1RacingEnv(tire_compound=tire)
         obs, _ = env.reset()
         done = False
@@ -92,8 +92,4 @@ def plot_lap_times(lap_times):
     plt.close(fig)
 
 if __name__ == "__main__":
-    # Create cache directory
-    os.makedirs("cache", exist_ok=True)
-
-    # Only evaluate existing models
-    evaluate_tire_performance()
+    main()
