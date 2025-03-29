@@ -43,18 +43,18 @@ def evaluate_tire_performance():
     lap_times = {}
 
     for tire in tire_types:
-        if not os.path.exists(f"models/ppo_racing_{tire}_tires.zip"):
+        if not os.path.exists(f"models/ppo_racing_{tire}_tires_marina_bay.zip"):
             print(f"\nNo model found for {tire} tires, skipping evaluation...")
             continue
             
-        model = PPO.load(f"models/ppo_racing_{tire}_tires")
-        env = F1RacingEnv(tire_compound=tire)
+        model = PPO.load(f"models/ppo_racing_{tire}_tires_marina_bay")
+        env = F1RacingEnv(track_name="Singapore", year=2023, tire_compound=tire)
         obs, _ = env.reset()
         done = False
 
         track_length = None
 
-        print(f"\nEvaluating {tire} tires\n" + "=" * 50)
+        print(f"\nEvaluating {tire} tires on Marina Bay Street Circuit\n" + "=" * 50)
         while not done:
             action, _ = model.predict(obs)
             obs, reward, done, _, info = env.step(action)

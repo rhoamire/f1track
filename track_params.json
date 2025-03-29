@@ -1,0 +1,50 @@
+{
+    "Monza": {
+        "mu_base": 1.5,
+        "mu_max_values": {
+            "soft": 1.73,
+            "medium": 1.7,
+            "hard": 1.67
+        },
+        "D_t_values": {
+            "soft": 0.0185,
+            "medium": 0.018,
+            "hard": 0.0175
+        },
+        "k_evolution": 0.01,
+        "tire_speed_bonus": {
+            "soft": 1.02,
+            "medium": 1.0,
+            "hard": 0.98
+        },
+        "acceleration_bonus": {
+            "soft": 1.008,
+            "medium": 1.0,
+            "hard": 0.992
+        }
+    },
+    "Singapore": {
+        "mu_base": 1.35,
+        "mu_max_values": {
+            "soft": 1.52,
+            "medium": 1.50,
+            "hard": 1.48
+        },
+        "D_t_values": {
+            "soft": 0.025,
+            "medium": 0.024,
+            "hard": 0.023
+        },
+        "k_evolution": 0.012,
+        "tire_speed_bonus": {
+            "soft": 0.92,
+            "medium": 0.90,
+            "hard": 0.88
+        },
+        "acceleration_bonus": {
+            "soft": 0.858,
+            "medium": 0.85,
+            "hard": 0.842
+        }
+    }
+} 

@@ -4,11 +4,13 @@ import matplotlib.pyplot as plt
 import fastf1
 import fastf1.plotting
 from gymnasium import spaces
+import json
 
 class F1RacingEnv(gym.Env):
-    def __init__(self, track_name: str = "Monza", year: int = 2023, tire_compound: str = "soft"):
+    def __init__(self, track_name: str = "Singapore", year: int = 2023, tire_compound: str = "soft"):
         super().__init__()
 
+        self.track_name = track_name  # Store track name for later use
         fastf1.Cache.enable_cache('cache')
         session = fastf1.get_session(year, track_name, 'R')
         session.load()
@@ -18,15 +20,26 @@ class F1RacingEnv(gym.Env):
         self.X = self.telemetry['X'].values
         self.Y = self.telemetry['Y'].values
         self.Speed = self.telemetry['Speed'].values
+        
+        # Store previous values for acceleration calculation
+        self.prev_speed = 0
+        self.prev_direction = np.array([0, 1])
 
         self.current_step = 0
         self.max_steps = len(self.X)
         self.current_lap = 1
 
-        # Final ultra-subtle tire compounds and wear rates
-        self.mu_base = 1.5
-        self.mu_max_values = {"soft": 1.73, "medium": 1.7, "hard": 1.67}  # Even smaller differences
-        self.D_t_values = {"soft": 0.0185, "medium": 0.018, "hard": 0.0175}  # Even closer wear rates
+        # Load track-specific parameters
+        with open('track_params.json', 'r') as f:
+            track_params = json.load(f)
+            if track_name not in track_params:
+                raise ValueError(f"No parameters found for track: {track_name}")
+            params = track_params[track_name]
+
+        self.mu_base = params['mu_base']
+        self.mu_max_values = params['mu_max_values']
+        self.D_t_values = params['D_t_values']
+        self.k_evolution = params['k_evolution']
 
         self.tire_compound = tire_compound
         self.mu_max = self.mu_max_values[self.tire_compound]
@@ -34,13 +47,14 @@ class F1RacingEnv(gym.Env):
 
         self.mu = self.mu_max
         self.g = 9.81
-        self.k_evolution = 0.01  # Reduced evolution rate
 
         # Time and distance tracking
         self.time_step = 0.1
         self.total_time = 0.0
         self.distance_traveled = 0.0
         self.distance_scale = 1.0
+        self.last_lap_time = 0.0
+        self.best_lap_time = float('inf')
 
         self.track_length = self._calculate_track_length()
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(7,), dtype=np.float32)
@@ -71,9 +85,12 @@ class F1RacingEnv(gym.Env):
         # Adjusted cornering speed calculation
         max_cornering_speed = np.sqrt(self.mu * self.g * curvature_radius)
         
-        # Final ultra-subtle compound-specific bonuses
-        tire_speed_bonus = {"soft": 1.02, "medium": 1.0, "hard": 0.98}  # Smaller speed differences
-        acceleration_bonus = {"soft": 1.008, "medium": 1.0, "hard": 0.992}  # Extremely subtle acceleration differences
+        # Load track-specific tire bonuses
+        with open('track_params.json', 'r') as f:
+            track_params = json.load(f)
+            params = track_params[self.track_name]
+            tire_speed_bonus = params['tire_speed_bonus']
+            acceleration_bonus = params['acceleration_bonus']
         
         # Apply compound-specific effects
         base_speed = velocity + (throttle * 10 - brake * self.g) * 0.1 * acceleration_bonus[self.tire_compound]
